@@ -8,404 +8,233 @@
 import UIKit
 
 class ViewController: UIViewController, ResultViewControllerProtocol{
-    func dialogDismissed() {
-        // score歸零
-        for i in 0..<questions.count {
-            questions[i].choices[0].score = 0
-            questions[i].choices[1].score = 0
-            questions[i].choices[2].score = 0
-            questions[i].choices[3].score = 0
-        }
+
+    var currentQuestionIndex = 0
+    
+    //
+    func dialogueDismissed() {
         currentQuestionIndex = 0 // 指標回到第1題
         progressBar.progress = 0 // 進度條歸零
         displayQuestion() // 顯示問題
-        }
-                
+    }
+
+    
+    //view時都先跑displayQuestion去重置按鈕選取，及隱藏"next"按鈕
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        displayQuestion()
+        nextButton.isHidden = true
+    }
     
     
-    var currentQuestionIndex = 0
     
-    @IBOutlet weak var languageSegmented: UISegmentedControl!
+    // MARK: - IBOUTLETS
+    
     @IBOutlet weak var progressBar: UIProgressView!
     @IBOutlet weak var questionsLabel: UILabel!
     @IBOutlet weak var firstChoiceButton: UIButton!
     @IBOutlet weak var secondChoiceButton: UIButton!
     @IBOutlet weak var thirdChoiceButton: UIButton!
     @IBOutlet weak var fourthChoiceButton: UIButton!
+    @IBOutlet weak var nextButton: UIButton!
     
+    
+    
+    // MARK: - IBACTIONS
+    // 定義選項被選後便色變圖案，以及選項被選擇後才會顯示出"next"按鈕
 
-
-    
-    
     @IBAction func firstButtonAction(_ sender: AnyObject) {
         firstChoiceButton.isSelected = true;
         secondChoiceButton.isSelected = false;
         thirdChoiceButton.isSelected = false;
         fourthChoiceButton.isSelected = false;
+        nextButton.isHidden = false
     }
     @IBAction func secondButtonAction(_ sender: AnyObject) {
         firstChoiceButton.isSelected = false;
         secondChoiceButton.isSelected = true;
         thirdChoiceButton.isSelected = false;
         fourthChoiceButton.isSelected = false;
+        nextButton.isHidden = false
     }
     @IBAction func thirdButtonAction(_ sender: AnyObject) {
         firstChoiceButton.isSelected = false;
         secondChoiceButton.isSelected = false;
         thirdChoiceButton.isSelected = true;
         fourthChoiceButton.isSelected = false;
+        nextButton.isHidden = false
     }
     @IBAction func fourthButtonAction(_ sender: AnyObject) {
         firstChoiceButton.isSelected = false;
         secondChoiceButton.isSelected = false;
         thirdChoiceButton.isSelected = false;
         fourthChoiceButton.isSelected = true;
+        nextButton.isHidden = false
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        displayQuestion()
-    }
+    
 
-
+    
+    // MARK: - function區
+    
+    // 顯示question以及屬於它的choices。
     func displayQuestion() {
-        questionsLabel.text = questions[currentQuestionIndex].content
+        //顯示相對應的問題及選項
+        questionsLabel.text = questions[currentQuestionIndex].questionContent
         firstChoiceButton.setTitle(questions[currentQuestionIndex].choices[0].content, for: .normal)
         secondChoiceButton.setTitle(questions[currentQuestionIndex].choices[1].content, for: .normal)
         thirdChoiceButton.setTitle(questions[currentQuestionIndex].choices[2].content, for: .normal)
         fourthChoiceButton.setTitle(questions[currentQuestionIndex].choices[3].content, for: .normal)
+        
+        //每次點選"next"按鈕後，都把四個選項取消選取。
         firstChoiceButton.isSelected = false;
         secondChoiceButton.isSelected = false;
         thirdChoiceButton.isSelected = false;
         fourthChoiceButton.isSelected = false;
-        
-        
     }
     
     
-    
+    // 下一題 ＆ 答完題目後的計算分數
 
-    @IBAction func nextButton(_ sender: UIButton) {
+    @IBAction func nextButton(_ sender: UIButton)
+    {
         var alignmentTypeText = ""
         var index = 0
         currentQuestionIndex += 1
         progressBar.progress = Float(currentQuestionIndex) / Float(questions.count) // 更新進度條
-        
-        
-        if currentQuestionIndex == questions.count {
+        if currentQuestionIndex == questions.count
+        {
+            // 將每次答題後計算的陣營取向取最大值丟回alignmentTypeText，再去看要抓哪個index
             alignmentTypeText = computeAlignmentType()
-            
-            // 求出 personalityTypeText 屬於的 struct 在陣列中的 index
-            switch alignmentTypeText {
-            case "Lawful Good": index = 0
-            case "Neutral Good": index = 1
-            case "Chaotic Good": index = 2
-            case "Lawful Neutral": index = 3
-            case "True Neutral": index = 4
-            case "Chaotic Neutral": index = 5
-            case "Lawful Evil": index = 6
-            case "Neutral Evil": index = 7
-            case "Chaotic Evil": index = 8
-            default: break
+
+            // 求出 AlignmentTypeText 屬於的 struct 在陣列中的 index
+            switch alignmentTypeText
+            {
+                case "守序善良": index = 0
+                case "中立善良": index = 1
+                case "混乱善良": index = 2
+                case "守序中立": index = 3
+                case "中立中立": index = 4
+                case "混乱中立": index = 5
+                case "守序邪恶": index = 6
+                case "中立邪恶": index = 7
+                case "混乱邪恶": index = 8
+                default: break
             }
-            
-            // 把 personalities[index] 和 index 分別傳給 resultVC 的屬性
-            if let resultVC = storyboard?.instantiateViewController(identifier: "ResultVC") as? ResultViewController {
-                resultVC.delegate = self //restart功能用
-                
-                resultVC.alignmentInfo = Alignments[index]
-                resultVC.alignmentIndex = index
-                
-                resultVC.modalPresentationStyle = .overCurrentContext
-                present(resultVC, animated: true)
+                // 把 alignment[index] 和 index 分別傳給 resultVC 的屬性
+                if let resultVC = storyboard?.instantiateViewController(identifier: "ResultVC") as? ResultViewController
+                    {
+                    resultVC.delegate = self //restart功能用
+                    resultVC.alignmentInfo = alignments[index]
+                    resultVC.alignmentIndex = index
+                    resultVC.modalPresentationStyle = .overCurrentContext
+                    present(resultVC, animated: true)
+                    }
+        } else if currentQuestionIndex < questions.count
+            {
+            displayQuestion() // 顯示下一頁後的題目
+            nextButton.isHidden = true // 隱藏下一頁的按鈕
             }
-        } else if currentQuestionIndex < questions.count { // 還有題目
-            if sender.tag == 0 {
-                // 點到上面的按鈕，對應選項的score + 1
-                questions[currentQuestionIndex - 1].choices[0].score += 1
-            } else {
-                // 點到下面的按鈕，對應選項的score + 1
-                questions[currentQuestionIndex - 1].choices[1].score += 1
-            }
-            displayQuestion() // 顯示下題
+        
+    }
+
+    
+    // 選擇選項後，回傳選項的資訊
+    func buttonChose() -> Int
+    {
+        var chose:Int = 0
+        if firstChoiceButton.isSelected == true {
+            chose = 0
+        } else if secondChoiceButton.isSelected == true {
+            chose = 1
+        } else if thirdChoiceButton.isSelected == true {
+            chose = 2
+        } else if fourthChoiceButton.isSelected == true {
+            chose = 3
         }
+        return chose
     }
     
-
-            
-    func computeAlignmentType() -> String {
-        let Law_Score =
-        questions[3].choices[0].score +
-        questions[3].choices[0].score +
-        questions[3].choices[1].score +
-        questions[4].choices[0].score +
-        questions[4].choices[0].score +
-        questions[4].choices[1].score +
-        questions[9].choices[0].score +
-        questions[9].choices[0].score +
-        questions[9].choices[1].score +
-        questions[10].choices[0].score +
-        questions[10].choices[0].score +
-        questions[10].choices[1].score +
-        questions[15].choices[0].score +
-        questions[15].choices[0].score +
-        questions[15].choices[1].score +
-        questions[17].choices[0].score +
-        questions[17].choices[0].score +
-        questions[17].choices[1].score +
-        questions[21].choices[0].score +
-        questions[21].choices[0].score +
-        questions[21].choices[1].score +
-        questions[23].choices[0].score +
-        questions[23].choices[0].score +
-        questions[23].choices[1].score +
-        questions[27].choices[0].score +
-        questions[27].choices[0].score +
-        questions[27].choices[1].score +
-        questions[29].choices[2].score +
-        questions[29].choices[3].score +
-        questions[29].choices[3].score +
-        questions[33].choices[2].score +
-        questions[33].choices[3].score +
-        questions[33].choices[3].score +
-        questions[34].choices[2].score +
-        questions[34].choices[3].score +
-        questions[34].choices[3].score
+    
+    // 設變數給計算陣營功能"computeAlignmentType"使用
+    var law_Score = 0
+    var chaos_Score = 0
+    var lcn_Score = 0
+    var good_Score = 0
+    var evil_Score = 0
+    var gen_Score = 0
+    
+    func computeAlignmentType() -> String
+    {
+        let defineType = questions[currentQuestionIndex - 1].choices[buttonChose()].type
         
-        let LCNeutral_Score =
-        questions[4].choices[2].score +
-        questions[4].choices[3].score +
-        questions[4].choices[3].score +
-        questions[5].choices[2].score +
-        questions[5].choices[3].score +
-        questions[5].choices[3].score +
-        questions[10].choices[2].score +
-        questions[10].choices[3].score +
-        questions[10].choices[3].score +
-        questions[11].choices[0].score +
-        questions[11].choices[0].score +
-        questions[11].choices[1].score +
-        questions[16].choices[2].score +
-        questions[16].choices[3].score +
-        questions[16].choices[3].score +
-        questions[17].choices[2].score +
-        questions[17].choices[3].score +
-        questions[17].choices[3].score +
-        questions[22].choices[2].score +
-        questions[22].choices[3].score +
-        questions[22].choices[3].score +
-        questions[23].choices[2].score +
-        questions[23].choices[3].score +
-        questions[23].choices[3].score +
-        questions[27].choices[2].score +
-        questions[27].choices[3].score +
-        questions[27].choices[3].score +
-        questions[28].choices[2].score +
-        questions[28].choices[3].score +
-        questions[28].choices[3].score +
-        questions[33].choices[0].score +
-        questions[33].choices[0].score +
-        questions[33].choices[1].score +
-        questions[35].choices[0].score +
-        questions[35].choices[0].score +
-        questions[35].choices[1].score
+        // 用switch在qustions[_].choices[_]裡面的type挑
+        switch defineType
+            {
+            case .Law:
+                law_Score += questions[currentQuestionIndex - 1].choices[buttonChose()].score
+                print("Law", law_Score)
+            case .Chaos:
+                chaos_Score += questions[currentQuestionIndex - 1].choices[buttonChose()].score
+                print("Chaos", chaos_Score)
+            case .LCN:
+                lcn_Score += questions[currentQuestionIndex - 1].choices[buttonChose()].score
+                print("LCN", lcn_Score)
+            case .Good:
+                good_Score += questions[currentQuestionIndex - 1].choices[buttonChose()].score
+                print("Good", good_Score)
+            case .Evil:
+                evil_Score += questions[currentQuestionIndex - 1].choices[buttonChose()].score
+                print("Evil", evil_Score)
+            case .GEN:
+                gen_Score += questions[currentQuestionIndex - 1].choices[buttonChose()].score
+                print("GEN", gen_Score)
+        }
         
-        let Chaos_Score =
-        questions[3].choices[2].score +
-        questions[3].choices[3].score +
-        questions[3].choices[3].score +
-        questions[5].choices[0].score +
-        questions[5].choices[0].score +
-        questions[5].choices[1].score +
-        questions[9].choices[2].score +
-        questions[9].choices[3].score +
-        questions[9].choices[3].score +
-        questions[11].choices[2].score +
-        questions[11].choices[3].score +
-        questions[11].choices[3].score +
-        questions[15].choices[2].score +
-        questions[15].choices[3].score +
-        questions[15].choices[3].score +
-        questions[16].choices[0].score +
-        questions[16].choices[0].score +
-        questions[16].choices[1].score +
-        questions[21].choices[2].score +
-        questions[21].choices[3].score +
-        questions[21].choices[3].score +
-        questions[22].choices[0].score +
-        questions[22].choices[0].score +
-        questions[22].choices[1].score +
-        questions[28].choices[0].score +
-        questions[28].choices[0].score +
-        questions[28].choices[1].score +
-        questions[29].choices[0].score +
-        questions[29].choices[0].score +
-        questions[29].choices[1].score +
-        questions[34].choices[0].score +
-        questions[34].choices[0].score +
-        questions[34].choices[1].score +
-        questions[35].choices[2].score +
-        questions[35].choices[3].score +
-        questions[35].choices[3].score
-
-        let Good_Score =
-        questions[0].choices[0].score +
-        questions[0].choices[0].score +
-        questions[0].choices[1].score +
-        questions[1].choices[0].score +
-        questions[1].choices[0].score +
-        questions[1].choices[1].score +
-        questions[6].choices[2].score +
-        questions[6].choices[3].score +
-        questions[6].choices[3].score +
-        questions[7].choices[0].score +
-        questions[7].choices[0].score +
-        questions[7].choices[1].score +
-        questions[12].choices[0].score +
-        questions[12].choices[0].score +
-        questions[12].choices[1].score +
-        questions[13].choices[0].score +
-        questions[13].choices[0].score +
-        questions[13].choices[1].score +
-        questions[18].choices[0].score +
-        questions[18].choices[0].score +
-        questions[18].choices[1].score +
-        questions[20].choices[0].score +
-        questions[20].choices[0].score +
-        questions[20].choices[1].score +
-        questions[25].choices[2].score +
-        questions[25].choices[3].score +
-        questions[25].choices[3].score +
-        questions[26].choices[0].score +
-        questions[26].choices[0].score +
-        questions[26].choices[1].score +
-        questions[30].choices[0].score +
-        questions[30].choices[0].score +
-        questions[30].choices[1].score +
-        questions[31].choices[0].score +
-        questions[31].choices[0].score +
-        questions[31].choices[1].score
-
-        let GENeutral_Score =
-        questions[1].choices[2].score +
-        questions[1].choices[3].score +
-        questions[1].choices[3].score +
-        questions[2].choices[2].score +
-        questions[2].choices[3].score +
-        questions[2].choices[3].score +
-        questions[7].choices[2].score +
-        questions[7].choices[3].score +
-        questions[7].choices[3].score +
-        questions[8].choices[2].score +
-        questions[8].choices[3].score +
-        questions[8].choices[3].score +
-        questions[12].choices[2].score +
-        questions[12].choices[3].score +
-        questions[12].choices[3].score +
-        questions[14].choices[0].score +
-        questions[14].choices[0].score +
-        questions[14].choices[1].score +
-        questions[19].choices[2].score +
-        questions[19].choices[3].score +
-        questions[19].choices[3].score +
-        questions[20].choices[2].score +
-        questions[20].choices[3].score +
-        questions[20].choices[3].score +
-        questions[24].choices[2].score +
-        questions[24].choices[3].score +
-        questions[24].choices[3].score +
-        questions[25].choices[0].score +
-        questions[25].choices[0].score +
-        questions[25].choices[1].score +
-        questions[31].choices[2].score +
-        questions[31].choices[3].score +
-        questions[31].choices[3].score +
-        questions[32].choices[2].score +
-        questions[32].choices[3].score +
-        questions[32].choices[3].score
-        
-        let Evil_Score =
-        questions[0].choices[2].score +
-        questions[0].choices[3].score +
-        questions[0].choices[3].score +
-        questions[2].choices[0].score +
-        questions[2].choices[0].score +
-        questions[2].choices[1].score +
-        questions[6].choices[0].score +
-        questions[6].choices[0].score +
-        questions[6].choices[1].score +
-        questions[8].choices[0].score +
-        questions[8].choices[0].score +
-        questions[8].choices[1].score +
-        questions[13].choices[2].score +
-        questions[13].choices[3].score +
-        questions[13].choices[3].score +
-        questions[14].choices[2].score +
-        questions[14].choices[3].score +
-        questions[14].choices[3].score +
-        questions[18].choices[2].score +
-        questions[18].choices[3].score +
-        questions[18].choices[3].score +
-        questions[19].choices[0].score +
-        questions[19].choices[0].score +
-        questions[19].choices[1].score +
-        questions[24].choices[0].score +
-        questions[24].choices[0].score +
-        questions[24].choices[1].score +
-        questions[26].choices[2].score +
-        questions[26].choices[3].score +
-        questions[26].choices[3].score +
-        questions[30].choices[2].score +
-        questions[30].choices[3].score +
-        questions[30].choices[3].score +
-        questions[32].choices[0].score +
-        questions[32].choices[0].score +
-        questions[32].choices[1].score
-
-        
+        // 設定變數來丟兩種性向？性格？偏好？
         var typeString = ""
         
-        //第一區陣營
-        let firstType = ["Law", "Neutral", "Chaos"]
-        if  Law_Score > LCNeutral_Score && Law_Score > Chaos_Score{
-            typeString += "Law"
-        } else if Chaos_Score > Law_Score && Chaos_Score > LCNeutral_Score {
-            typeString += "Chaos"
-        } else if LCNeutral_Score > Law_Score && LCNeutral_Score > Chaos_Score {
-            typeString += "Neutral"
-        } else {
-            typeString += firstType.randomElement()!
+        // 第一種，為避免分數相同多做了幾個判別
+        let firstAlignment = ["守序", "中立", "混乱"]
+        if  law_Score > chaos_Score && law_Score > lcn_Score {
+            typeString += "守序"
+        } else if chaos_Score > law_Score && chaos_Score > lcn_Score {
+            typeString += "混乱"
+        } else if lcn_Score > law_Score && lcn_Score > chaos_Score {
+            typeString += "中立"
+        } else if law_Score == lcn_Score && chaos_Score < lcn_Score {
+            typeString += "守序"
+        } else if law_Score == chaos_Score {
+            typeString += "中立"
+        } else if chaos_Score == lcn_Score && law_Score < lcn_Score {
+            typeString += "混乱"
         }
         
-        
-        //第二區陣營
-        let secondType = ["Good", "Neutral", "Evil"]
-        if  Good_Score > GENeutral_Score && Good_Score > Evil_Score{
-            typeString += "Good"
-        } else if Evil_Score > Good_Score && Evil_Score > GENeutral_Score {
-            typeString += "Evil"
-        } else if GENeutral_Score > Good_Score && GENeutral_Score > Evil_Score {
-            typeString += "Neutral"
-        } else {
-            typeString += secondType.randomElement()!
+        // 第二種，為避免分數相同多做了幾個判別
+        let secondAlignment = ["善良", "中立", "邪恶"]
+        if  good_Score > evil_Score && good_Score > gen_Score {
+            typeString += "善良"
+        } else if evil_Score > good_Score && evil_Score > gen_Score {
+            typeString += "邪恶"
+        } else if gen_Score > good_Score && gen_Score > evil_Score {
+            typeString += "中立"
+        } else if good_Score == gen_Score && evil_Score < gen_Score {
+            typeString += "善良"
+        } else if good_Score == evil_Score {
+            typeString += "中立"
+        } else if evil_Score == gen_Score && good_Score < gen_Score {
+            typeString += "邪恶"
         }
         
-        
-        
+        // 最後computeAlignmentType此function回傳一個string，丟回去給alignmentTypeText再做陣營判別及抓資訊。
         return typeString
     }
     
-    // ResultViewControllerProtocol Methods
-
-            
-            
-            
-            
-    }
-
-  
-
- 
-
+}
+    
+        
+        
+    
+    
+    
 

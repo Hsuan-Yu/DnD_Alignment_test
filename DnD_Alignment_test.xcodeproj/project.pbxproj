@@ -64,9 +64,9 @@
 			children = (
 				D8E93F742A17484000E2DA23 /* AppDelegate.swift */,
 				D8E93F762A17484000E2DA23 /* SceneDelegate.swift */,
-				D8E93F782A17484000E2DA23 /* ViewController.swift */,
 				D8E93F902A1B4A8E00E2DA23 /* AlignmentType.swift */,
 				D8E93F882A174C2B00E2DA23 /* Questions.swift */,
+				D8E93F782A17484000E2DA23 /* ViewController.swift */,
 				D8E93F8E2A1B174C00E2DA23 /* ResultViewController.swift */,
 				D8E93F7A2A17484000E2DA23 /* Main.storyboard */,
 				D8E93F7D2A17484100E2DA23 /* Assets.xcassets */,

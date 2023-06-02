@@ -9,7 +9,7 @@ import UIKit
 
 
 protocol ResultViewControllerProtocol {
-    func dialogDismissed()
+    func dialogueDismissed()
 }
 
 
@@ -23,8 +23,7 @@ class ResultViewController: UIViewController {
     @IBOutlet weak var resultImageView: UIImageView!
     @IBOutlet weak var resultTypeLabel: UILabel!
     @IBOutlet weak var resultDescriptionLabel: UILabel!
-    
-    
+        
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -43,7 +42,7 @@ class ResultViewController: UIViewController {
     
     @IBAction func tryAgainButton(_ sender: UIButton) {
         dismiss(animated: true, completion: nil)
-        delegate?.dialogDismissed()
+        delegate?.dialogueDismissed()
     }
     
     
